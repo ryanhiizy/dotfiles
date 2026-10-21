@@ -1,0 +1,44 @@
+# Shared by the Mac and WSL through ~/dotfiles: every dev tool and runtime on both machines comes
+# from this file. Apps, services and the OS stay with brew (Mac) or apt (WSL).
+
+[tools]
+node = "24"
+pnpm = "12"
+uv = "latest"
+bun = "latest"
+go = "latest"
+rust = "stable"
+terraform = "latest"
+gh = "latest"
+supabase = "latest"
+doppler = "latest"
+k6 = "latest"
+worktrunk = "latest"
+actionlint = "latest"
+shellcheck = "latest"
+jq = "latest"
+fzf = "latest"
+zoxide = "latest"
+bat = "latest"
+eza = "latest"
+fd = "latest"
+ripgrep = "latest"
+neovim = "latest"
+trufflehog = "latest"
+tokei = "latest"
+zellij = "latest"
+# mise's "unison" is the Unison language; skills-sync needs the file synchroniser.
+"github:bcpierce00/unison" = "2.54.0"
+"npm:executor" = "latest"
+"npm:agent-browser" = "latest"
+"npm:@playwright/mcp" = "latest"
+"npm:vercel" = "latest"
+"npm:codex-profiles" = "latest"
+"npm:dev-purge" = "latest"
+"npm:clawpatch" = "latest"
+"npm:codex-app-wakatime" = "latest"
+"npm:cursor-agent-wakatime" = "latest"
+
+[settings]
+# Projects pin Node in .node-version (ender-rebuild does).
+idiomatic_version_file_enable_tools = ["node"]
