@@ -36,8 +36,6 @@ zellij = "latest"
 "npm:codex-profiles" = "latest"
 "npm:dev-purge" = "latest"
 "npm:clawpatch" = "latest"
-"npm:codex-app-wakatime" = "latest"
-"npm:cursor-agent-wakatime" = "latest"
 
 [settings]
 # Projects pin Node in .node-version (ender-rebuild does).
