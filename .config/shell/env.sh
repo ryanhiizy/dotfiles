@@ -18,6 +18,10 @@ case $(uname -s) in
     ;;
   Linux)
     PATH="$PATH:$HOME/.local/share/google-cloud-sdk/bin:/snap/bin"
+    # One ssh-agent per user from systemd's ssh-agent.socket; a forwarded agent wins.
+    agent="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/openssh_agent"
+    [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$agent" ] && export SSH_AUTH_SOCK="$agent"
+    unset agent
     # Web URLs open in the Mac's browser.
     [ -x "$HOME/.local/bin/remote-access-browser" ] && export BROWSER="$HOME/.local/bin/remote-access-browser"
     # Size the vitest pool from free memory (about 1.5 GB per worker, 2 to all cores), so

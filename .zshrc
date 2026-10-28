@@ -51,10 +51,6 @@ if [[ $OSTYPE == linux* ]]; then
   # A Windows SSH session starts in System32.
   [[ $PWD == /mnt/c/* ]] && cd ~
   alacritty() { "/mnt/c/Program Files/Alacritty/alacritty.exe" "$@"; }
-  if [[ -z $SSH_AUTH_SOCK ]]; then
-    eval "$(ssh-agent -s)" >/dev/null
-    ssh-add ~/.ssh/id_ed25519 2>/dev/null
-  fi
 fi
 
 [[ -r $HOME/.config/zsh/local.zsh ]] && source "$HOME/.config/zsh/local.zsh"
