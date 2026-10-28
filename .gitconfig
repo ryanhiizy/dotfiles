@@ -1,0 +1,16 @@
+# Shared by the Mac and WSL through ~/dotfiles. Machine-only settings and credential
+# helpers go in ~/.config/git/local, which is never synced.
+[user]
+	name = ryanhiizy
+	email = ryanhiizy@gmail.com
+[init]
+	defaultBranch = main
+# GitHub auth comes from gh, so git and gh share one login.
+[credential "https://github.com"]
+	helper =
+	helper = !\"$HOME/.local/share/mise/shims/gh\" auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !\"$HOME/.local/share/mise/shims/gh\" auth git-credential
+[include]
+	path = ~/.config/git/local

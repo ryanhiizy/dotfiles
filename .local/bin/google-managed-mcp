@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+case "$1" in
+  run) endpoint=https://run.googleapis.com/mcp ;;
+  quotas) endpoint=https://cloudquotas.googleapis.com/mcp ;;
+  *) echo 'Expected run or quotas' >&2; exit 2 ;;
+esac
+GCLOUD_MCP_TOKEN=$(gcloud auth application-default print-access-token)
+export GCLOUD_MCP_TOKEN
+exec npx -y mcp-remote@0.15.1 "$endpoint" --transport http-only --header 'Authorization: Bearer ${GCLOUD_MCP_TOKEN}' --header 'x-goog-user-project: ender-staging'

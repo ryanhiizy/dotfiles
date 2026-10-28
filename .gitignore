@@ -1,3 +1,4 @@
 # Machine-only settings and secrets stay out of the repo.
 .config/zsh/local.zsh
 .config/shell/local.sh
+.config/git/local
