@@ -23,7 +23,10 @@ case $(uname -s) in
     export ENDER_PDF_INSPECTOR_CACHE_DIR="${ENDER_PDF_INSPECTOR_CACHE_DIR:-$HOME/.cache/ender/pdf-inspector}"
     # Web URLs open in the Mac's browser.
     [ -x "$HOME/.local/bin/remote-access-browser" ] && export BROWSER="$HOME/.local/bin/remote-access-browser"
-    [ -r "$HOME/.config/vitest-workers.sh" ] && . "$HOME/.config/vitest-workers.sh"
+    # Size the vitest pool from free memory (about 1.5 GB per worker, 2 to all cores), so
+    # an idle machine runs wide and concurrent agent runs can't exhaust RAM.
+    VITEST_MAX_WORKERS=$(awk -v cores="$(nproc)" '/^MemAvailable:/ { n = int($2 / 1572864); if (n < 2) n = 2; if (n > cores) n = cores; print n }' /proc/meminfo)
+    export VITEST_MAX_WORKERS
     ;;
 esac
 path_prepend "$HOME/.local/share/mise/shims" "$HOME/.local/bin"
