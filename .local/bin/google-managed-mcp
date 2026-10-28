@@ -1,5 +1,9 @@
 #!/bin/sh
+# Google's managed MCP servers for Executor. Executor doesn't start a shell, so read the
+# machine's GCLOUD_MCP_PROJECT (the quota project) from local.sh here.
 set -eu
+[ -r "$HOME/.config/shell/local.sh" ] && . "$HOME/.config/shell/local.sh"
+: "${GCLOUD_MCP_PROJECT:?set GCLOUD_MCP_PROJECT in ~/.config/shell/local.sh}"
 case "$1" in
   run) endpoint=https://run.googleapis.com/mcp ;;
   quotas) endpoint=https://cloudquotas.googleapis.com/mcp ;;
@@ -7,4 +11,4 @@ case "$1" in
 esac
 GCLOUD_MCP_TOKEN=$(gcloud auth application-default print-access-token)
 export GCLOUD_MCP_TOKEN
-exec npx -y mcp-remote@0.15.1 "$endpoint" --transport http-only --header 'Authorization: Bearer ${GCLOUD_MCP_TOKEN}' --header 'x-goog-user-project: ender-staging'
+exec npx -y mcp-remote@0.15.1 "$endpoint" --transport http-only --header 'Authorization: Bearer ${GCLOUD_MCP_TOKEN}' --header "x-goog-user-project: $GCLOUD_MCP_PROJECT"

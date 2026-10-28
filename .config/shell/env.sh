@@ -18,9 +18,6 @@ case $(uname -s) in
     ;;
   Linux)
     PATH="$PATH:$HOME/.local/share/google-cloud-sdk/bin:/snap/bin"
-    # Remote Ender development signs in to AWS with a device code.
-    export ENDER_LOCAL_AWS_LOGIN_MODE=device-code
-    export ENDER_PDF_INSPECTOR_CACHE_DIR="${ENDER_PDF_INSPECTOR_CACHE_DIR:-$HOME/.cache/ender/pdf-inspector}"
     # Web URLs open in the Mac's browser.
     [ -x "$HOME/.local/bin/remote-access-browser" ] && export BROWSER="$HOME/.local/bin/remote-access-browser"
     # Size the vitest pool from free memory (about 1.5 GB per worker, 2 to all cores), so

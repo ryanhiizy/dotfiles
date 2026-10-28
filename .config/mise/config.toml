@@ -38,5 +38,5 @@ zellij = "latest"
 "npm:clawpatch" = "latest"
 
 [settings]
-# Projects pin Node in .node-version (ender-rebuild does).
+# Projects pin Node in .node-version.
 idiomatic_version_file_enable_tools = ["node"]
