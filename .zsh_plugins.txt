@@ -3,6 +3,5 @@ zsh-users/zsh-completions kind:fpath path:src
 $HOME/.config/zsh/compinit.zsh
 Aloxaf/fzf-tab
 zsh-users/zsh-autosuggestions
-wfxr/forgit
 zdharma-continuum/fast-syntax-highlighting
 zsh-users/zsh-history-substring-search

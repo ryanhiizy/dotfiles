@@ -45,7 +45,6 @@ bindkey '\e[3;5~' kill-word
 bindkey '^H' backward-kill-word
 
 eval "$(zoxide init zsh --cmd z)"
-command -v wt >/dev/null && eval "$(command wt config shell init zsh)"
 
 if [[ $OSTYPE == linux* ]]; then
   # A Windows SSH session starts in System32.
