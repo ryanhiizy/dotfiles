@@ -4,13 +4,24 @@
 set -eu
 repo=$(cd "$(dirname "$0")" && pwd)
 cd "$repo"
+# Links are relative, as GNU Stow makes them: skills-sync copies ~/.agents between the
+# Mac and WSL, whose home paths differ, so an absolute link breaks on the other machine.
+case $repo in
+  "$HOME"/*) base=${repo#"$HOME"/} ;;
+  *) base= ;;
+esac
 git ls-files | grep -vE '^(install\.sh|\.gitignore)$' | while read -r f; do
   target="$HOME/$f"
   mkdir -p "$(dirname "$target")"
   if [ -e "$target" ] && [ ! -L "$target" ]; then
     mv "$target" "$target.pre-dotfiles"
   fi
-  ln -sfn "$repo/$f" "$target"
+  if [ -n "$base" ]; then
+    up=$(printf '%s\n' "$f" | sed 's|[^/]*/|../|g; s|[^/]*$||')
+    ln -sfn "$up$base/$f" "$target"
+  else
+    ln -sfn "$repo/$f" "$target"
+  fi
   echo "linked $f"
 done
 
