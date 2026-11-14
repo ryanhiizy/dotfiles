@@ -15,6 +15,12 @@ case $(uname -s) in
   Darwin)
     export HOMEBREW_PREFIX=/opt/homebrew HOMEBREW_CELLAR=/opt/homebrew/Cellar HOMEBREW_REPOSITORY=/opt/homebrew
     path_prepend /opt/homebrew/sbin /opt/homebrew/bin
+    # Rex ships its CLI inside the app bundle and installs no link to it.
+    for app in "/Applications/Rex.app" "/Applications/Rex Beta.app"; do
+      rex="$app/Contents/Helpers/Rex Server.rex/Contents/MacOS"
+      [ -x "$rex/rex" ] && PATH="$PATH:$rex" && break
+    done
+    unset app rex
     ;;
   Linux)
     PATH="$PATH:$HOME/.local/share/google-cloud-sdk/bin:/snap/bin"
