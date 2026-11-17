@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Removes agent worktrees under ~/.cache/ender-worktrees that nobody needs any more:
-# no checkout or commit for REAPER_IDLE_DAYS (default 3), no uncommitted or untracked files, HEAD
+# no checkout or commit for REAPER_IDLE_DAYS (default 7), no uncommitted or untracked files, HEAD
 # already on a remote branch, and no process working inside. Removing one loses only
 # ignored files (dependencies, build output); the branch and its commits stay.
 # Session worktrees (.claude/worktrees) are left to their sessions: pinned threads can
@@ -9,7 +9,7 @@
 set -u
 export GIT_OPTIONAL_LOCKS=0 # status must not refresh the index, or every scan resets the idle clock
 root="${REAPER_ROOT:-$HOME/.cache/ender-worktrees}"
-idle_days="${REAPER_IDLE_DAYS:-3}"
+idle_days="${REAPER_IDLE_DAYS:-7}"
 dry=; [ "${1:-}" = "--dry-run" ] && dry=1
 [ -d "$root" ] || exit 0
 
