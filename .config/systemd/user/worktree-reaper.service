@@ -1,0 +1,8 @@
+[Unit]
+Description=Remove idle, pushed agent worktrees
+
+[Service]
+Type=oneshot
+Nice=19
+IOSchedulingClass=idle
+ExecStart=%h/.local/bin/worktree-reaper
