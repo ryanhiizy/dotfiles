@@ -35,6 +35,7 @@ zellij = "latest"
 "npm:codex-profiles" = "latest"
 "npm:dev-purge" = "latest"
 "npm:clawpatch" = "latest"
+"npm:@openai/codex" = "latest"
 
 [settings]
 # Projects pin Node in .node-version.
