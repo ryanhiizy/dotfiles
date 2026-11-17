@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Removes agent worktrees under ~/.cache/ender-worktrees that nobody needs any more:
-# untouched for REAPER_IDLE_DAYS (default 3), no uncommitted or untracked files, HEAD
+# no checkout or commit for REAPER_IDLE_DAYS (default 3), no uncommitted or untracked files, HEAD
 # already on a remote branch, and no process working inside. Removing one loses only
 # ignored files (dependencies, build output); the branch and its commits stay.
 # Session worktrees (.claude/worktrees) are left to their sessions: pinned threads can
 # sit idle for weeks.
 # Usage: worktree-reaper [--dry-run]
 set -u
+export GIT_OPTIONAL_LOCKS=0 # status must not refresh the index, or every scan resets the idle clock
 root="${REAPER_ROOT:-$HOME/.cache/ender-worktrees}"
 idle_days="${REAPER_IDLE_DAYS:-3}"
 dry=; [ "${1:-}" = "--dry-run" ] && dry=1
@@ -20,7 +21,7 @@ removed=0
 while IFS= read -r gitfile; do
   w=${gitfile%/.git}
   gitdir=$(git -C "$w" rev-parse --absolute-git-dir 2>/dev/null) || continue
-  last=$(stat -c %Y "$gitdir/index" "$gitdir/HEAD" "$gitdir/logs/HEAD" 2>/dev/null | sort -n | tail -1)
+  last=$(stat -c %Y "$gitdir/HEAD" "$gitdir/logs/HEAD" 2>/dev/null | sort -n | tail -1)
   [ "${last:-0}" -lt "$cutoff" ] || continue
   printf '%s\n' "$busy" | grep -qE "^$w(/|$)" && continue
   [ -z "$(git -C "$w" status --porcelain 2>/dev/null)" ] || continue
