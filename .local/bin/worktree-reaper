@@ -21,7 +21,8 @@ removed=0
 while IFS= read -r gitfile; do
   w=${gitfile%/.git}
   gitdir=$(git -C "$w" rev-parse --absolute-git-dir 2>/dev/null) || continue
-  last=$(stat -c %Y "$gitdir/HEAD" "$gitdir/logs/HEAD" 2>/dev/null | sort -n | tail -1)
+  # The newest reflog entry, not file times: git maintenance rewrites logs/HEAD.
+  last=$( { stat -c %Y "$gitdir/HEAD"; git -C "$w" log -g -1 --format=%ct HEAD; } 2>/dev/null | sort -n | tail -1)
   [ "${last:-0}" -lt "$cutoff" ] || continue
   printf '%s\n' "$busy" | grep -qE "^$w(/|$)" && continue
   [ -z "$(git -C "$w" status --porcelain 2>/dev/null)" ] || continue
