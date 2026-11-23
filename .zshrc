@@ -31,7 +31,8 @@ ANTIDOTE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}/antidote"
 [[ -d ${ZDOTDIR:-$HOME}/.antidote ]] ||
   git clone --depth=1 https://github.com/mattmc3/antidote.git "${ZDOTDIR:-$HOME}/.antidote"
 zsh_plugins=${ZDOTDIR:-$HOME}/.zsh_plugins
-if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt ]]; then
+# Also rebuild when the plugin cache is gone (a fresh machine or a cleared ~/.cache).
+if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt || ! -d $ANTIDOTE_HOME ]]; then
   source "${ZDOTDIR:-$HOME}/.antidote/antidote.zsh"
   antidote bundle <${zsh_plugins}.txt >|${zsh_plugins}.zsh
 fi
