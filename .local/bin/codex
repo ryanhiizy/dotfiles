@@ -1,0 +1,4 @@
+#!/bin/sh
+# GUI apps (Cappy) look for codex at fixed paths like ~/.local/bin/codex without mise on
+# PATH. Shells reach the mise shim first, so this only serves those apps.
+exec mise exec -- codex "$@"
