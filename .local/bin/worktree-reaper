@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Removes agent worktrees nobody needs any more, under ~/.cache/ender-worktrees and every
-# ~/projects/*/.claude/worktrees: no checkout or commit for REAPER_IDLE_DAYS (default 7), no
-# Claude session transcript touched in that time, no uncommitted or untracked files, HEAD
+# ~/projects/*/.claude/worktrees: no checkout or commit for REAPER_IDLE_DAYS (default 7; session
+# worktrees REAPER_SESSION_IDLE_DAYS, default 30, since pinned threads sit idle for weeks and the
+# reaper cannot see pins), no Claude session transcript touched in that time, no uncommitted or untracked files, HEAD
 # on a remote branch or a pull request head (squash-merged branches are deleted from the
 # remote), and no process working inside. Removing one loses only ignored files
 # (dependencies, build output); every removal is logged with its HEAD and branch so a
@@ -11,6 +12,7 @@
 set -u
 export GIT_OPTIONAL_LOCKS=0 # status must not refresh the index, or every scan resets the idle clock
 idle_days="${REAPER_IDLE_DAYS:-7}"
+session_idle_days="${REAPER_SESSION_IDLE_DAYS:-30}"
 dry=; [ "${1:-}" = "--dry-run" ] && dry=1
 log="${XDG_STATE_HOME:-$HOME/.local/state}/worktree-reaper/removed.tsv"
 mkdir -p "${log%/*}"
@@ -19,7 +21,6 @@ roots=("${REAPER_ROOT:-$HOME/.cache/ender-worktrees}")
 [ -n "${REAPER_ROOT:-}" ] || for d in "$HOME"/projects/*/.claude/worktrees; do [ -d "$d" ] && roots+=("$d"); done
 
 busy=$(for p in /proc/[0-9]*; do readlink "$p/cwd" 2>/dev/null; done | sort -u)
-cutoff=$(( $(date +%s) - idle_days * 86400 ))
 removed=0
 declare -A pr_heads_loaded=()
 pr_heads=$(mktemp); trap 'rm -f "$pr_heads"' EXIT
@@ -43,6 +44,8 @@ recent_session() { # $1 worktree: a Claude transcript for this path changed sinc
 
 for root in "${roots[@]}"; do
   [ -d "$root" ] || continue
+  days=$idle_days; case $root in */.claude/worktrees) days=$session_idle_days ;; esac
+  cutoff=$(( $(date +%s) - days * 86400 ))
   # Agents sometimes nest worktrees one level down (for example $root/fix/<name>).
   while IFS= read -r gitfile; do
     w=${gitfile%/.git}
