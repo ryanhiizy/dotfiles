@@ -8,3 +8,5 @@ description: Shared Mac and WSL machine config in ~/dotfiles; use before install
 - After `mise upgrade executor`, run `executor service install` (WSL: then `systemctl --user restart sh.executor.daemon.service`) so the background service runs the new version.
 - Environment for every shell: `~/.config/shell/env.sh` (POSIX; zsh and Claude's bash both load it). Machine-only exports and secrets: `~/.config/shell/local.sh`. Machine-only git: `~/.config/git/local`. Neither is committed.
 - Shared scripts: `.local/bin/` in the repo. Fetch tokens at runtime (`gh auth token`); never commit secrets.
+- OS packages and root config for a WSL Ubuntu (Docker repo, sshd keys-only, earlyoom, wsl.conf): `setup/apt-packages.txt` and `setup/ubuntu.sh`, run once with `sudo sh ~/dotfiles/setup/ubuntu.sh` before `install.sh`. Add an apt package there, not by hand. `setup/` is not linked into `$HOME`.
+- `home-lint` lists entries in `~` missing from `~/.config/home-lint/allow`; agent scratch work belongs in `~/experiments/<YYYY-MM-DD>-<slug>`.

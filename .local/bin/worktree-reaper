@@ -1,34 +1,64 @@
 #!/usr/bin/env bash
-# Removes agent worktrees under ~/.cache/ender-worktrees that nobody needs any more:
-# no checkout or commit for REAPER_IDLE_DAYS (default 7), no uncommitted or untracked files, HEAD
-# already on a remote branch, and no process working inside. Removing one loses only
-# ignored files (dependencies, build output); the branch and its commits stay.
-# Session worktrees (.claude/worktrees) are left to their sessions: pinned threads can
-# sit idle for weeks.
+# Removes agent worktrees nobody needs any more, under ~/.cache/ender-worktrees and every
+# ~/projects/*/.claude/worktrees: no checkout or commit for REAPER_IDLE_DAYS (default 7), no
+# Claude session transcript touched in that time, no uncommitted or untracked files, HEAD
+# on a remote branch or a pull request head (squash-merged branches are deleted from the
+# remote), and no process working inside. Removing one loses only ignored files
+# (dependencies, build output); every removal is logged with its HEAD and branch so a
+# returning session can recreate it:
+#   git -C <repo> worktree add <path> <head>
 # Usage: worktree-reaper [--dry-run]
 set -u
 export GIT_OPTIONAL_LOCKS=0 # status must not refresh the index, or every scan resets the idle clock
-root="${REAPER_ROOT:-$HOME/.cache/ender-worktrees}"
 idle_days="${REAPER_IDLE_DAYS:-7}"
 dry=; [ "${1:-}" = "--dry-run" ] && dry=1
-[ -d "$root" ] || exit 0
+log="${XDG_STATE_HOME:-$HOME/.local/state}/worktree-reaper/removed.tsv"
+mkdir -p "${log%/*}"
 
-busy=$(for p in /proc/[0-9]*; do readlink "$p/cwd" 2>/dev/null; done | grep "^$root/" | sort -u)
+roots=("${REAPER_ROOT:-$HOME/.cache/ender-worktrees}")
+[ -n "${REAPER_ROOT:-}" ] || for d in "$HOME"/projects/*/.claude/worktrees; do [ -d "$d" ] && roots+=("$d"); done
+
+busy=$(for p in /proc/[0-9]*; do readlink "$p/cwd" 2>/dev/null; done | sort -u)
 cutoff=$(( $(date +%s) - idle_days * 86400 ))
 removed=0
+declare -A pr_heads_loaded=()
+pr_heads=$(mktemp); trap 'rm -f "$pr_heads"' EXIT
 
-# Agents sometimes nest worktrees one level down (for example $root/fix/<name>).
-while IFS= read -r gitfile; do
-  w=${gitfile%/.git}
-  gitdir=$(git -C "$w" rev-parse --absolute-git-dir 2>/dev/null) || continue
-  # The newest reflog entry, not file times: git maintenance rewrites logs/HEAD.
-  last=$( { stat -c %Y "$gitdir/HEAD"; git -C "$w" log -g -1 --format=%ct HEAD; } 2>/dev/null | sort -n | tail -1)
-  [ "${last:-0}" -lt "$cutoff" ] || continue
-  printf '%s\n' "$busy" | grep -qE "^$w(/|$)" && continue
-  [ -z "$(git -C "$w" status --porcelain 2>/dev/null)" ] || continue
-  [ -n "$(git -C "$w" branch -r --contains HEAD 2>/dev/null)" ] || continue
-  if [ -n "$dry" ]; then echo "would remove $w"; continue; fi
-  git -C "$w" worktree remove --force "$w" && removed=$((removed + 1)) && echo "removed $w"
-done < <(find "$root" -mindepth 2 -maxdepth 3 -name .git -type f 2>/dev/null)
+on_remote() { # $1 worktree: HEAD reachable from a remote branch, or equal to a PR head
+  local w=$1 common head
+  [ -n "$(git -C "$w" branch -r --contains HEAD 2>/dev/null | head -1)" ] && return 0
+  common=$(git -C "$w" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  if [ -z "${pr_heads_loaded[$common]:-}" ]; then
+    git -C "$w" ls-remote origin 'refs/pull/*/head' 2>/dev/null | awk -v c="$common" '{print c"\t"$1}' >> "$pr_heads"
+    pr_heads_loaded[$common]=1
+  fi
+  head=$(git -C "$w" rev-parse HEAD 2>/dev/null) || return 1
+  grep -qxF "$common	$head" "$pr_heads"
+}
+
+recent_session() { # $1 worktree: a Claude transcript for this path changed since the cutoff
+  local dir="$HOME/.claude/projects/$(printf '%s' "$1" | sed 's|[^A-Za-z0-9]|-|g')"
+  [ -d "$dir" ] && [ -n "$(find "$dir" -maxdepth 1 -name '*.jsonl' -newermt "@$cutoff" -print -quit 2>/dev/null)" ]
+}
+
+for root in "${roots[@]}"; do
+  [ -d "$root" ] || continue
+  # Agents sometimes nest worktrees one level down (for example $root/fix/<name>).
+  while IFS= read -r gitfile; do
+    w=${gitfile%/.git}
+    gitdir=$(git -C "$w" rev-parse --absolute-git-dir 2>/dev/null) || continue
+    # The newest reflog entry, not file times: git maintenance rewrites logs/HEAD.
+    last=$( { stat -c %Y "$gitdir/HEAD"; git -C "$w" log -g -1 --format=%ct HEAD; } 2>/dev/null | sort -n | tail -1)
+    [ "${last:-0}" -lt "$cutoff" ] || continue
+    printf '%s\n' "$busy" | grep -qE "^$w(/|$)" && continue
+    recent_session "$w" && continue
+    [ -z "$(git -C "$w" status --porcelain --untracked-files=all 2>/dev/null)" ] || continue
+    on_remote "$w" || continue
+    if [ -n "$dry" ]; then echo "would remove $w"; continue; fi
+    repo=$(dirname "$(git -C "$w" rev-parse --path-format=absolute --git-common-dir)")
+    line=$(printf '%s\t%s\t%s\t%s\t%s' "$(date -Is)" "$repo" "$w" "$(git -C "$w" rev-parse HEAD)" "$(git -C "$w" branch --show-current)")
+    git -C "$w" worktree remove --force "$w" && printf '%s\n' "$line" >> "$log" && removed=$((removed + 1)) && echo "removed $w"
+  done < <(find "$root" -mindepth 2 -maxdepth 3 -name .git -type f 2>/dev/null)
+done
 
 [ -n "$dry" ] || echo "worktree-reaper: removed $removed"

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Lists entries in ~ that are not in ~/.config/home-lint/allow. Exit 1 if any.
+# Usage: home-lint [-q]   (-q: one summary line, for the login notice)
+allow="${XDG_CONFIG_HOME:-$HOME/.config}/home-lint/allow"
+[ -r "$allow" ] || exit 0
+strays=$(ls -1 "$HOME" | grep -Ev '^\s*$' | while IFS= read -r n; do grep -qxF -- "$n" "$allow" || printf '%s\n' "$n"; done)
+[ -z "$strays" ] && exit 0
+if [ "${1:-}" = -q ]; then
+  echo "home-lint: $(printf '%s\n' "$strays" | wc -l | tr -d ' ') stray in ~ ($(printf '%s' "$strays" | tr '\n' ' ')); move to ~/experiments/<date>-<slug>"
+else
+  printf '%s\n' "$strays"
+fi
+exit 1

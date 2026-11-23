@@ -54,3 +54,6 @@ fi
 
 [[ -r $HOME/.config/zsh/local.zsh ]] && source "$HOME/.config/zsh/local.zsh"
 [[ -r $HOME/.p10k.zsh ]] && source "$HOME/.p10k.zsh"
+
+# Agents leave scratch folders in ~; say so at login instead of letting them pile up.
+[[ -o login ]] && command -v home-lint >/dev/null && home-lint -q

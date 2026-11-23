@@ -1,0 +1,20 @@
+# Top-level entries allowed in ~ on the Mac and WSL (visible names only; dotfiles are free).
+# Agent scratch work goes in ~/experiments/<YYYY-MM-DD>-<slug>, never loose in ~.
+Applications
+Desktop
+Documents
+Downloads
+Library
+Movies
+Music
+Pictures
+Public
+Projects
+projects
+Monash
+monash
+backups
+dotfiles
+experiments
+go
+superwhisper

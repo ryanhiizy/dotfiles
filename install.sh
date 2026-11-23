@@ -10,7 +10,7 @@ case $repo in
   "$HOME"/*) base=${repo#"$HOME"/} ;;
   *) base= ;;
 esac
-git ls-files | grep -vE '^(install\.sh|\.gitignore)$' | while read -r f; do
+git ls-files | grep -vE '^(install\.sh|\.gitignore|setup/.*)$' | while read -r f; do
   target="$HOME/$f"
   mkdir -p "$(dirname "$target")"
   if [ -e "$target" ] && [ ! -L "$target" ]; then
