@@ -20,6 +20,9 @@ usermod -aG docker "$user"
 # WSL: systemd on, the user logs in by default.
 printf '[boot]\nsystemd=true\n[user]\ndefault=%s\n' "$user" > /etc/wsl.conf
 
+# /tmp on disk, not RAM: agent scratchpads and task output live there and must survive a restart.
+systemctl mask tmp.mount >/dev/null 2>&1 || true
+
 # SSH: keys only.
 printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\n' > /etc/ssh/sshd_config.d/10-keys-only.conf
 systemctl enable --now ssh >/dev/null 2>&1 || true
