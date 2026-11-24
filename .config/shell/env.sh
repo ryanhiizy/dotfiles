@@ -34,6 +34,15 @@ case $(uname -s) in
     # an idle machine runs wide and concurrent agent runs can't exhaust RAM.
     VITEST_MAX_WORKERS=$(awk -v cores="$(nproc)" '/^MemAvailable:/ { n = int($2 / 1572864); if (n < 2) n = 2; if (n > cores) n = cores; print n }' /proc/meminfo)
     export VITEST_MAX_WORKERS
+    # Playwright's Chromium needs libasound.so.2. Without root it was unpacked here from
+    # `apt-get download libasound2t64` + `dpkg -x`; setup/apt-packages.txt installs it properly,
+    # after which this directory can go. Exported here so MCP servers Claude starts inherit it.
+    deps="$HOME/.local/lib/playwright-deps"
+    [ -d "$deps" ] && case ":${LD_LIBRARY_PATH:-}:" in
+      *":$deps:"*) ;;
+      *) export LD_LIBRARY_PATH="$deps${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" ;;
+    esac
+    unset deps
     ;;
 esac
 path_prepend "$HOME/.local/share/mise/shims" "$HOME/.local/bin"

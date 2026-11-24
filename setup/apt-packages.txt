@@ -16,6 +16,8 @@ pandoc
 imagemagick
 tesseract-ocr
 libnotify-bin
+# Playwright Chromium links libasound.so.2.
+libasound2t64
 xclip
 wl-clipboard
 tree
